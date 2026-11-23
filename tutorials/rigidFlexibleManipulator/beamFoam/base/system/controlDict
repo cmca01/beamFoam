@@ -1,0 +1,63 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| beamFoam: finite volume solver for geometrically exact beams                |
+| Web:         https://github.com/solids4foam/beamFoam                        |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     beamFoam;
+
+startFrom       startTime;
+startTime       0;
+stopAt          endTime;
+endTime         2;
+// As in the paper
+deltaT          0.01;
+
+writeControl    timeStep;
+writeInterval   2;
+purgeWrite      0;
+writeFormat     ascii;
+writePrecision  10;
+writeCompression uncompressed;
+timeFormat      general;
+timePrecision   6;
+runTimeModifiable no;
+
+functions
+{
+    // Free-end displacement (the paper's Fig. 11)
+    beamDisplacementsTip
+    {
+        type            beamDisplacements;
+        historyPatch    right;
+    }
+
+    // Force and moment at the joint
+    beamForcesMomentsJoint
+    {
+        type            beamForcesMoments;
+        historyPatch    left;
+    }
+
+    // Solver work per time step (postProcessing/0/beamSolverIterations.dat)
+    beamSolverIterations
+    {
+        type            beamSolverIterations;
+        libs            ("libwireBunchingModels.so");
+    }
+}
+
+
+// ************************************************************************* //

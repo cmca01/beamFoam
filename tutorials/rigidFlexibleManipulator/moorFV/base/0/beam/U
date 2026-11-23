@@ -1,0 +1,55 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| beamFoam: finite volume solver for geometrically exact beams                |
+| Web:         https://github.com/solids4foam/beamFoam                        |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0/beam";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Start on the periodic (drift-free) motion: the joint moves at
+// omega R = 8 m/s and the link turns at Omega0 = -k/omega = -0.313316 rad/s
+// (k = 3.13316 1/s^2; see the README)
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   nonuniform List<vector>
+8
+(
+(0 7.984334204 0)
+(0 7.953002611 0)
+(0 7.921671018 0)
+(0 7.890339426 0)
+(0 7.859007833 0)
+(0 7.82767624 0)
+(0 7.796344648 0)
+(0 7.765013055 0)
+);
+
+boundaryField
+{
+    left
+    {
+        type            calculated;
+        value           uniform (0 8 0);
+    }
+    right
+    {
+        type            calculated;
+        value           uniform (0 7.749347258 0);
+    }
+    beam
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

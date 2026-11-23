@@ -1,0 +1,23 @@
+#!/bin/sh
+# Rigid-flexible manipulator (Ibrahimbegovic & Mamouri 2000, section 6.2):
+# run the beamFoam-only and moorFV versions, each with partitioned and
+# monolithic coupling, then plot the comparison.
+# Usage: ./Allrun [endTime]
+cd "${0%/*}" || exit 1
+
+./beamFoam/Allrun "$@" &
+./moorFV/Allrun "$@" &
+wait
+
+# Plot with a Python that has numpy and matplotlib: $PYTHON if set, else
+# python3, else the opensees-env virtual environment
+for PYTHON in ${PYTHON:-} python3 "$HOME/venvs/opensees-env/bin/python"
+do
+    if "$PYTHON" -c "import numpy, matplotlib" 2>/dev/null
+    then
+        "$PYTHON" plotComparison.py
+        exit
+    fi
+done
+echo "No Python with numpy and matplotlib found: set PYTHON and run" \
+    "plotComparison.py"

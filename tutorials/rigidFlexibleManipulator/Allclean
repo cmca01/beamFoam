@@ -1,0 +1,5 @@
+#!/bin/sh
+cd "${0%/*}" || exit 1
+./beamFoam/Allclean
+./moorFV/Allclean
+rm -rf plots Allrun.out

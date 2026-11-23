@@ -301,6 +301,36 @@ Foam::rigidBodyEnd::rigidBodyEnd
             );
     }
 
+    // Optional motion constraints for a beamFoam-only run: the centre of
+    // mass held in place, and rotation only about one axis. A caller such
+    // as moorFV replaces them with its own through setConstraints()
+    if (dict.getOrDefault<bool>("fixedTranslation", false))
+    {
+        tConstraints_ = tensor::zero;
+    }
+
+    if (dict.found("rotationAxis"))
+    {
+        if (!rotation_)
+        {
+            FatalIOErrorInFunction(dict)
+                << "rotationAxis needs a momentOfInertia"
+                << exit(FatalIOError);
+        }
+
+        const vector axis(dict.get<vector>("rotationAxis"));
+
+        if (mag(axis) < SMALL)
+        {
+            FatalIOErrorInFunction(dict)
+                << "rotationAxis must be non-zero" << exit(FatalIOError);
+        }
+
+        rConstraints_ = sqr(axis/mag(axis));
+    }
+
+    setConstraints(tConstraints_, rConstraints_);
+
     // The old-time state is the initial state. A caller such as moorFV
     // creates the body during the first time step, when newTimeStep() does
     // not copy the state across, so the first step must start from it

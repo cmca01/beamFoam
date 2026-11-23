@@ -1,0 +1,28 @@
+#!/bin/sh
+# Run the rigid-flexible manipulator in beamFoam alone (rigidBodyEnd crank)
+# with partitioned and monolithic coupling, side by side, each in serial.
+# Usage: ./Allrun [endTime]      (default: endTime in base/system/controlDict)
+cd "${0%/*}" || exit 1
+
+for coupling in partitioned monolithic
+do
+    rm -rf $coupling
+    /bin/cp -R base $coupling
+    sed -i "s/^\(\s*rigidBodyCoupling\s*\)\w*;/\1$coupling;/" \
+        $coupling/constant/beamProperties
+    if [ -n "$1" ]
+    then
+        sed -i "s/^endTime .*/endTime         $1;/" $coupling/system/controlDict
+    fi
+    touch $coupling/case.foam
+done
+
+for coupling in partitioned monolithic
+do
+    (cd $coupling && ./Allrun > /dev/null 2>&1; echo "beamFoam $coupling finished") &
+done
+wait
+
+# The crank for ParaView: VTK/rigidBody.vtk.series in each case (a small box
+# at the hinge and an arm to the joint)
+python3 ../../rigidBodyEndWhirl/writeRigidBodyVTK partitioned monolithic --size 0.1

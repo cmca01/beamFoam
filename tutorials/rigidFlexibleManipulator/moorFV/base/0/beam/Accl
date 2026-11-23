@@ -1,0 +1,54 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| beamFoam: finite volume solver for geometrically exact beams                |
+| Web:         https://github.com/solids4foam/beamFoam                        |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0/beam";
+    object      Accl;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Joint centripetal acceleration omega^2 R towards the hinge, plus the
+// link's own centripetal term Omega0^2 s
+dimensions      [0 1 -2 0 0 0 0];
+
+internalField   nonuniform List<vector>
+8
+(
+(-80.00490834 0 0)
+(-80.01472503 0 0)
+(-80.02454172 0 0)
+(-80.0343584 0 0)
+(-80.04417509 0 0)
+(-80.05399178 0 0)
+(-80.06380847 0 0)
+(-80.07362515 0 0)
+);
+
+boundaryField
+{
+    left
+    {
+        type            calculated;
+        value           uniform (-80 0 0);
+    }
+    right
+    {
+        type            calculated;
+        value           uniform (-80.0785335 0 0);
+    }
+    beam
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

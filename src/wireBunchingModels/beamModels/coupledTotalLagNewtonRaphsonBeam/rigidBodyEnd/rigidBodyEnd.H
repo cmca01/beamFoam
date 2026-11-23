@@ -63,6 +63,9 @@ Description
             externalMoment      (0 0 0); // constant applied moment [N m]
             linearDamping       0;       // viscous force -c v [N s/m]
             angularDamping      0;       // viscous moment -c omega [N m s]
+            fixedTranslation    no;      // yes: centre of mass held in place
+            rotationAxis        (0 0 1); // optional: rotation only about
+                                         // this axis (global axes)
             newmarkBeta         0.25;
             newmarkGamma        0.5;
             nCouplingIterations 1;       // partitioned coupling iterations

@@ -1,0 +1,59 @@
+#!/bin/sh
+# Mesh once, then run the rigid-flexible manipulator with moorFV's
+# partitioned (FvBeamNewmark) and monolithic (beamFoamCoupled) coupling side
+# by side, each in serial. Partitioned is run twice: with the 3 PIMPLE outer
+# correctors of base/system/fvSolution, and with 20 (partitioned_nOuter20),
+# enough to converge the body-beam coupling within each time step.
+# Usage: ./Allrun [endTime]      (default: endTime in base/system/controlDict)
+cd "${0%/*}" || exit 1
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+# Fluid mesh (a coarse block round the hinge) and beam mesh, made once
+if [ ! -d mesh/constant/polyMesh ]
+then
+    rm -rf mesh
+    mkdir mesh
+    /bin/cp -R base/0 base/constant base/system mesh/
+    (cd mesh && runApplication blockMesh) || exit 1
+
+    # createBeamMesh in a beamFoam-only copy of the beam set-up
+    mkdir -p mesh/beam/constant mesh/beam/system
+    /bin/cp base/constant/beam/beamProperties base/constant/beam/dynamicMeshDict \
+        mesh/beam/constant/
+    /bin/cp base/system/beam/* mesh/beam/system/
+    (cd mesh/beam && runApplication createBeamMesh) || exit 1
+fi
+
+CASES="partitioned partitioned_nOuter20 monolithic"
+
+for coupling in $CASES
+do
+    case $coupling in
+        partitioned*) solver=FvBeamNewmark;   relax=0.4 ;;
+        monolithic)  solver=beamFoamCoupled; relax=1 ;;
+    esac
+
+    rm -rf $coupling
+    mkdir $coupling
+    /bin/cp -R mesh/0 base/constant base/system $coupling/
+    /bin/cp -R mesh/constant/polyMesh $coupling/constant/
+    /bin/cp -R mesh/beam/constant/polyMesh $coupling/constant/beam/
+    sed -i -e "s/SOLVER/$solver/" -e "s/RELAX/$relax/" \
+        $coupling/constant/dynamicMeshDict
+    case $coupling in
+        *_nOuter*)
+            sed -i "s/^\(\s*nOuterCorrectors\s*\).*;/\1${coupling##*_nOuter};/" \
+                $coupling/system/fvSolution ;;
+    esac
+    if [ -n "$1" ]
+    then
+        sed -i "s/^endTime .*/endTime         $1;/" $coupling/system/controlDict
+    fi
+    touch $coupling/case.foam
+done
+
+for coupling in $CASES
+do
+    (cd $coupling && interFoam > log.interFoam 2>&1; echo "moorFV $coupling finished") &
+done
+wait

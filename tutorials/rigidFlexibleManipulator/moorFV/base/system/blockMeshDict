@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| beamFoam: finite volume solver for geometrically exact beams                |
+| Web:         https://github.com/solids4foam/beamFoam                        |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// A placeholder fluid region: a coarse block round the hinge (-0.8 0 0).
+// The six-DoF solver runs in test mode (fluid forces ignored), and the whole
+// block turns rigidly with the crank, so its cells never distort however far
+// the crank turns. Its bottom face is the body patch the solver needs
+scale 1;
+
+vertices
+(
+    (-1.4 -0.6 -0.3)
+    (-0.2 -0.6 -0.3)
+    (-0.2  0.6 -0.3)
+    (-1.4  0.6 -0.3)
+    (-1.4 -0.6  0.3)
+    (-0.2 -0.6  0.3)
+    (-0.2  0.6  0.3)
+    (-1.4  0.6  0.3)
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (6 6 3) simpleGrading (1 1 1)
+);
+
+boundary
+(
+    outer
+    {
+        type patch;
+        faces
+        (
+            (0 4 7 3)
+            (1 2 6 5)
+            (0 1 5 4)
+            (3 7 6 2)
+            (4 5 6 7)
+        );
+    }
+    floatingObject
+    {
+        type wall;
+        faces
+        (
+            (0 3 2 1)
+        );
+    }
+);
+
+
+// ************************************************************************* //

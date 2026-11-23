@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| beamFoam: finite volume solver for geometrically exact beams                |
+| Web:         https://github.com/solids4foam/beamFoam                        |
+| Disclaimer:  This offering is not approved or endorsed by OpenCFD Limited,  |
+|              producer and distributor of the OpenFOAM software via          |
+|              www.openfoam.com, and owner of the OPENFOAM® and OpenCFD®      |
+|              trade marks.                                                   |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant/beam";
+    object      beamProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+beamModel coupledTotalLagNewtonRaphsonBeam;
+
+// Rigid-flexible manipulator: Ibrahimbegovic & Mamouri (2000), CMAME 188,
+// 805-831, section 6.2, Fig. 9. A rigid crank of length 0.8 m turns about a
+// fixed hinge at (-0.8 0 0) at 10 rad/s; a flexible link of length 0.8 m is
+// joined to the crank tip (0 0 0) by a revolute joint and is otherwise free.
+//
+// The crank is the moorFV body; see constant/dynamicMeshDict.
+//
+// The section and E, G, rho below give roughly the paper's properties; the
+// exact values (EA = GA = 1e6, EI = GJ = 1e5, A_rho = 1,
+// J_rho = diag(20, 10, 10)) are set by 0/CQ, 0/CM, 0/ARho and 0/CIRho,
+// which override them
+beams
+(
+    beam_0
+    {
+        crossSectionModel    circle;
+        circleCrossSectionModelDict
+        {
+            radius    0.632456;
+        }
+        length       0.8;
+        nSegments    8;
+        E            7.95775e5;
+        G            7.95775e5;
+        rho          0.795775;
+    }
+);
+
+"coupledTotalLagNewtonRaphsonBeamCoeffs"
+{
+    // No buoyancy
+    rhoFluid rhoFluid [1 -3 0 0 0 0 0] 0;
+
+    startPatchName    left;
+    endPatchName      right;
+
+    nCorrectors       200;
+    solutionTol       1e-10;
+    // Round-off floor of the force residual
+    absoluteTol       1e-8;
+    debug no;
+
+    // The crank is moorFV's six-DoF body (constant/dynamicMeshDict)
+}
+
+
+// ************************************************************************* //
